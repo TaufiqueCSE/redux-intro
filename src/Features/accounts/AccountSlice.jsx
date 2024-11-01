@@ -2,12 +2,13 @@ const initialStateAccount = {
   balance: 0,
   loan: 0,
   loanPurpose: "",
+  isLoading:false,
 };
 
- export default function accountReducer(state = initialStateAccount, action) {
+export default function accountReducer(state = initialStateAccount, action) {
   switch (action.type) {
     case "account/deposit":
-      return { ...state, balance: state.balance + action.payload };
+      return { ...state,isLoading:false, balance: state.balance + action.payload };
     case "account/withdraw":
       return { ...state, balance: state.balance - action.payload };
     case "account/requestLoan":
@@ -25,16 +26,37 @@ const initialStateAccount = {
         loanPurpose: "",
         balance: state.balance - state.loan,
       };
+    case "account/convertingCurrency":
+      return {...state,isLoading:true}
     default:
       return state;
   }
 }
+ 
 
+//yahan me api se conversion kr raha hu frankfurter.app pe mil jayega documentraion
+export function deposit(amount, currency) {
+  return async (dispatch) => {
+    if (currency === "USD") {
+      dispatch({ type: "account/deposit", payload: amount });
+      return;
+    }
 
-
-export function deposit(amount) {
-  return { type: "account/deposit", payload: amount };
+    try {
+      dispatch({type:"account/convertingCurrency"})
+      const response = await fetch(`https://api.frankfurter.app/latest?base=${currency}&symbols=USD`);
+      const data = await response.json();
+      const convertedAmount = Number((amount * data.rates["USD"]).toFixed(2));
+      console.log(convertedAmount)
+      dispatch({ type: "account/deposit", payload: convertedAmount });
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
 }
+
+
+
 export function withdraw(amount) {
   return { type: "account/withdraw", payload: amount };
 }
