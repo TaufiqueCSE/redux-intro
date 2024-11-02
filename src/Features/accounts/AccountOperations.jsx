@@ -30,7 +30,7 @@ function AccountOperations() {
     if (!loanAmount || !loanPurpose) {
       return;
     }
-    dispatch(requestLoan(loanAmount, loanPurpose));
+    dispatch(requestLoan(Number(loanAmount), loanPurpose));
     setLoanAmount("");
     setLoanPurpose("");
   }
